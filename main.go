@@ -13,5 +13,5 @@ func main() {
 		os.Exit(2)
 	}
 	cpu := chip8.NewChip8()
-	cpu.Load(os.Args[1])
+	cpu.Run(os.Args[1])
 }
