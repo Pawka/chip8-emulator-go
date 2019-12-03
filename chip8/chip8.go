@@ -8,12 +8,34 @@ type Chip8 interface {
 
 type chip8 struct {
 	ram *ram
+	// v is vector of registers. CHIP-8 has 16 8-bit data registers named V0 to
+	// VF.
+	v []byte
+
+	// 16 level stack
+	stack []int
+
+	delayTimer int
+	soundTimer int
+
+	// program counter
+	pc int
+	// 16bit register (For memory address)
+	i int
 }
+
+const registersCount = 16
+const stackSize = 16
+const timerInitialValue = 60
 
 // NewChip8 creates a new instance of emulator.
 func NewChip8() Chip8 {
 	c := &chip8{
-		ram: newRAM(),
+		ram:        newRAM(),
+		v:          make([]byte, registersCount),
+		stack:      make([]int, stackSize),
+		delayTimer: timerInitialValue,
+		soundTimer: timerInitialValue,
 	}
 
 	return c
