@@ -1,5 +1,10 @@
 package chip8
 
+import (
+	"encoding/binary"
+	"fmt"
+)
+
 // Chip8 is and interface of CHIP-8 emulator.
 type Chip8 interface {
 	// Run executes provided rom.
@@ -36,6 +41,7 @@ func NewChip8() Chip8 {
 		stack:      make([]int, stackSize),
 		delayTimer: timerInitialValue,
 		soundTimer: timerInitialValue,
+		pc:         0x200,
 	}
 
 	return c
@@ -44,4 +50,32 @@ func NewChip8() Chip8 {
 // Run implements the interface
 func (c *chip8) Run(path string) {
 	c.ram.Load(path)
+
+	for pc := 0x200; pc < memorySize; pc = pc + 2 {
+		c.disassemble(pc)
+	}
+}
+
+func (c *chip8) disassemble(pc int) {
+	code := binary.BigEndian.Uint16(c.ram.Memory[pc : pc+2])
+
+	first := code & 0xF000
+
+	var expl string
+	switch first {
+	case 0x00:
+		switch code & 0x00FF {
+		case 0xEE:
+			expl = "return;"
+		case 0xE0:
+			expl = "disp_clear();"
+		}
+	case 0x1000:
+		addr := code & 0x0FFF
+		expl = fmt.Sprintf("JMP #%x", addr)
+	default:
+		expl = fmt.Sprintf("%X", first)
+	}
+
+	fmt.Printf("%04x\t%04X\t%s\n", pc, code, expl)
 }
