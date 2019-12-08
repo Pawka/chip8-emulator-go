@@ -59,22 +59,123 @@ func (c *chip8) Run(path string) {
 func (c *chip8) disassemble(pc int) {
 	code := binary.BigEndian.Uint16(c.ram.Memory[pc : pc+2])
 
-	first := code & 0xF000
+	first := code & 0xF000 >> 12
 
 	var expl string
 	switch first {
-	case 0x00:
+	case 0x0:
 		switch code & 0x00FF {
 		case 0xEE:
 			expl = "return;"
 		case 0xE0:
 			expl = "disp_clear();"
 		}
-	case 0x1000:
+	case 0x1:
 		addr := code & 0x0FFF
 		expl = fmt.Sprintf("JMP #%x", addr)
+	case 0x2:
+		addr := code & 0x0FFF
+		expl = fmt.Sprintf("CALL #%x", addr)
+	case 0x3:
+		vx := code & 0x0F00 >> 8
+		nn := code & 0x00FF
+		expl = fmt.Sprintf("SE V%X, %X", vx, nn)
+	case 0x4:
+		vx := code & 0x0F00 >> 8
+		nn := code & 0x00FF
+		expl = fmt.Sprintf("SNE V%X, %X", vx, nn)
+	case 0x5:
+		vx := code & 0x0F00 >> 8
+		vy := code & 0x00F0 >> 4
+		expl = fmt.Sprintf("SE V%X, V%X", vx, vy)
+	case 0x6:
+		vx := code & 0x0F00 >> 8
+		nn := code & 0x00FF
+		expl = fmt.Sprintf("LD V%X, %X", vx, nn)
+	case 0x7:
+		vx := code & 0x0F00 >> 8
+		nn := code & 0x00FF
+		expl = fmt.Sprintf("ADD V%X, %X", vx, nn)
+	case 0x8:
+		vx := code & 0x0F00 >> 8
+		vy := code & 0x00F0 >> 4
+		last := code & 0x000F
+		switch last {
+		case 0x0:
+			expl = fmt.Sprintf("LD V%X, V%X", vx, vy)
+		case 0x1:
+			expl = fmt.Sprintf("OR V%X, V%X", vx, vy)
+		case 0x2:
+			expl = fmt.Sprintf("AND V%X, V%X", vx, vy)
+		case 0x3:
+			expl = fmt.Sprintf("XOR V%X, V%X", vx, vy)
+		case 0x4:
+			expl = fmt.Sprintf("ADD V%X, V%X", vx, vy)
+		case 0x5:
+			expl = fmt.Sprintf("SUB V%X, V%X", vx, vy)
+		case 0x6:
+			expl = fmt.Sprintf("SHR V%X, V%X", vx, vy)
+		case 0x7:
+			expl = fmt.Sprintf("SUBN V%X, V%X", vx, vy)
+		case 0xE:
+			expl = fmt.Sprintf("SHL V%X, V%X", vx, vy)
+		default:
+			expl = fmt.Sprintf("> %X", first)
+		}
+	case 0x9:
+		vx := code & 0x0F00 >> 8
+		vy := code & 0x00F0 >> 4
+		expl = fmt.Sprintf("SNE V%X, V%X", vx, vy)
+	case 0xA:
+		addr := code & 0x0FFF
+		expl = fmt.Sprintf("LD I, #%x", addr)
+	case 0xB:
+		addr := code & 0x0FFF
+		expl = fmt.Sprintf("JMP V0, #%x", addr)
+	case 0xC:
+		vx := code & 0x0F00 >> 8
+		nn := code & 0x00FF
+		expl = fmt.Sprintf("RND V%X, %X", vx, nn)
+	case 0xD:
+		vx := code & 0x0F00 >> 8
+		vy := code & 0x00F0 >> 4
+		n := code & 0x000F
+		expl = fmt.Sprintf("DRV V%X, V%X, %X", vx, vy, n)
+	case 0xE:
+		vx := code & 0x0F00 >> 8
+		last := code & 0x00FF
+		switch last {
+		case 0x9E:
+			expl = fmt.Sprintf("SKP V%X", vx)
+		case 0xA1:
+			expl = fmt.Sprintf("SKPN V%X", vx)
+		}
+	case 0xF:
+		vx := code & 0x0F00 >> 8
+		last := code & 0x00FF
+		switch last {
+		case 0x07:
+			expl = fmt.Sprintf("LD V%X, DT", vx)
+		case 0x0A:
+			expl = fmt.Sprintf("LD V%X, KEY", vx)
+		case 0x15:
+			expl = fmt.Sprintf("LD DT, V%X", vx)
+		case 0x18:
+			expl = fmt.Sprintf("LD ST V%X", vx)
+		case 0x1E:
+			expl = fmt.Sprintf("ADD I, V%X", vx)
+		case 0x29:
+			expl = fmt.Sprintf("LD I, FONT(V%X)", vx)
+		case 0x33:
+			expl = fmt.Sprintf("BCD V%X", vx)
+		case 0x55:
+			expl = fmt.Sprintf("LD [I], V%X", vx)
+		case 0x65:
+			expl = fmt.Sprintf("LD V%X, [I]", vx)
+		}
+
 	default:
-		expl = fmt.Sprintf("%X", first)
+		expl = fmt.Sprintf("> %X", first)
 	}
 
 	fmt.Printf("%04x\t%04X\t%s\n", pc, code, expl)
