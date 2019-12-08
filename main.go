@@ -12,6 +12,10 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Usage: %s <path-to-rom>\n", os.Args[0])
 		os.Exit(2)
 	}
+	ctx, err := chip8.NewCtxFromArgs(os.Args)
+	if err != nil {
+		panic(err)
+	}
 	cpu := chip8.NewChip8()
-	cpu.Run(os.Args[1])
+	cpu.Run(ctx)
 }

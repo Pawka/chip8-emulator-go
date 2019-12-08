@@ -8,7 +8,7 @@ import (
 // Chip8 is and interface of CHIP-8 emulator.
 type Chip8 interface {
 	// Run executes provided rom.
-	Run(string)
+	Run(ctx Ctx)
 }
 
 type chip8 struct {
@@ -48,8 +48,8 @@ func NewChip8() Chip8 {
 }
 
 // Run implements the interface
-func (c *chip8) Run(path string) {
-	c.ram.Load(path)
+func (c *chip8) Run(ctx Ctx) {
+	c.ram.Load(ctx.path)
 
 	for pc := 0x200; pc < memorySize; pc = pc + 2 {
 		c.disassemble(pc)
