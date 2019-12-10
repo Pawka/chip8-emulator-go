@@ -51,8 +51,11 @@ func NewChip8() Chip8 {
 func (c *chip8) Run(ctx Ctx) {
 	c.ram.Load(ctx.path)
 
-	for pc := 0x200; pc < memorySize; pc = pc + 2 {
-		c.disassemble(pc)
+	if ctx.disassemble {
+		for pc := 0x200; pc < memorySize; pc = pc + 2 {
+			c.disassemble(pc)
+		}
+		return
 	}
 }
 
