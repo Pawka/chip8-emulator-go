@@ -22,7 +22,7 @@ type chip8 struct {
 	v []byte
 
 	// 16 level stack
-	stack []int
+	stack []uint16
 
 	delayTimer int
 	soundTimer int
@@ -43,7 +43,7 @@ func NewChip8() Chip8 {
 		display:    display.New(),
 		ram:        newRAM(),
 		v:          make([]byte, registersCount),
-		stack:      make([]int, stackSize),
+		stack:      make([]uint16, 0, stackSize),
 		delayTimer: timerInitialValue,
 		soundTimer: timerInitialValue,
 		pc:         0x200,
@@ -62,9 +62,14 @@ func (c *chip8) Run(ctx Ctx) {
 		}
 		return
 	}
+
+	c.pc = 0x200
+	for {
+		c.exec(c.pc)
+	}
 }
 
-func (c *chip8) exec(pc int) {
+func (c *chip8) exec(pc uint16) {
 	code := binary.BigEndian.Uint16(c.ram.Memory[pc : pc+2])
 	first := code & 0xF000 >> 12
 
@@ -74,10 +79,21 @@ func (c *chip8) exec(pc int) {
 		case 0xE0:
 			c.pc += 2
 			c.display.Clear()
+		default:
+			panic("Not implemented")
 		}
 	case 0x1:
 		addr := code & 0x0FFF
 		c.pc = addr
+	case 0x2:
+		if len(c.stack) == stackSize-1 {
+			panic("Stack overflow")
+		}
+		addr := code & 0x0FFF
+		c.stack = append(c.stack, c.pc+2)
+		c.pc = addr
+	default:
+		panic("Not implemented")
 	}
 }
 

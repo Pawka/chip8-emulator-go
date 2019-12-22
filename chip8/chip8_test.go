@@ -20,6 +20,7 @@ func TestExec(t *testing.T) {
 		setup  func(ch *chip8)
 		assert func(t *testing.T, ch *chip8)
 	}{
+		// 00E0
 		"clear_display": {
 			opcode: []byte{0x00, 0xE0},
 			setup: func(ch *chip8) {
@@ -30,10 +31,20 @@ func TestExec(t *testing.T) {
 				assert.Equal(t, uint16(0x202), ch.pc)
 			},
 		},
+		// 1NNN
 		"jmp": {
 			opcode: []byte{0x12, 0xEE},
 			assert: func(t *testing.T, ch *chip8) {
 				assert.Equal(t, uint16(0x2EE), ch.pc)
+			},
+		},
+		// 2NNN
+		"call_subroutine": {
+			opcode: []byte{0x2A, 0xEE},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, 1, len(ch.stack))
+				assert.Equal(t, uint16(0x202), ch.stack[0])
+				assert.Equal(t, uint16(0xAEE), ch.pc)
 			},
 		},
 	}
