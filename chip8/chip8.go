@@ -3,6 +3,8 @@ package chip8
 import (
 	"encoding/binary"
 	"fmt"
+
+	"github.com/Pawka/chip8-emulator/chip8/display"
 )
 
 // Chip8 is and interface of CHIP-8 emulator.
@@ -12,6 +14,8 @@ type Chip8 interface {
 }
 
 type chip8 struct {
+	display display.Display
+
 	ram *ram
 	// v is vector of registers. CHIP-8 has 16 8-bit data registers named V0 to
 	// VF.
@@ -36,6 +40,7 @@ const timerInitialValue = 60
 // NewChip8 creates a new instance of emulator.
 func NewChip8() Chip8 {
 	c := &chip8{
+		display:    display.New(),
 		ram:        newRAM(),
 		v:          make([]byte, registersCount),
 		stack:      make([]int, stackSize),
@@ -59,9 +64,22 @@ func (c *chip8) Run(ctx Ctx) {
 	}
 }
 
+func (c *chip8) exec(pc int) {
+	code := binary.BigEndian.Uint16(c.ram.Memory[pc : pc+2])
+	first := code & 0xF000 >> 12
+
+	switch first {
+	case 0x0:
+		switch code & 0x00FF {
+		case 0xE0:
+			c.pc += 2
+			c.display.Clear()
+		}
+	}
+}
+
 func (c *chip8) disassemble(pc int) {
 	code := binary.BigEndian.Uint16(c.ram.Memory[pc : pc+2])
-
 	first := code & 0xF000 >> 12
 
 	var expl string
