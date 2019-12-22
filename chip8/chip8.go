@@ -28,7 +28,7 @@ type chip8 struct {
 	soundTimer int
 
 	// program counter
-	pc int
+	pc uint16
 	// 16bit register (For memory address)
 	i int
 }
@@ -75,6 +75,9 @@ func (c *chip8) exec(pc int) {
 			c.pc += 2
 			c.display.Clear()
 		}
+	case 0x1:
+		addr := code & 0x0FFF
+		c.pc = addr
 	}
 }
 

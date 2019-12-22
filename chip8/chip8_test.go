@@ -27,7 +27,13 @@ func TestExec(t *testing.T) {
 			},
 			assert: func(t *testing.T, ch *chip8) {
 				assert.True(t, ch.display.(*displayMock).clear)
-				assert.Equal(t, 0x200+2, ch.pc)
+				assert.Equal(t, uint16(0x202), ch.pc)
+			},
+		},
+		"jmp": {
+			opcode: []byte{0x12, 0xEE},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint16(0x2EE), ch.pc)
 			},
 		},
 	}
