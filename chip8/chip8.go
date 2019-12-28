@@ -79,6 +79,9 @@ func (c *chip8) exec(pc uint16) {
 		case 0xE0:
 			c.pc += 2
 			c.display.Clear()
+		case 0xEE:
+			c.pc = c.stack[len(c.stack)-1]
+			c.stack = c.stack[:len(c.stack)-1]
 		default:
 			panic("Not implemented")
 		}
@@ -142,16 +145,6 @@ func (c *chip8) disassemble(pc int) {
 		last := code & 0x000F
 		switch last {
 		case 0x0:
-			expl = fmt.Sprintf("LD V%X, V%X", vx, vy)
-		case 0x1:
-			expl = fmt.Sprintf("OR V%X, V%X", vx, vy)
-		case 0x2:
-			expl = fmt.Sprintf("AND V%X, V%X", vx, vy)
-		case 0x3:
-			expl = fmt.Sprintf("XOR V%X, V%X", vx, vy)
-		case 0x4:
-			expl = fmt.Sprintf("ADD V%X, V%X", vx, vy)
-		case 0x5:
 			expl = fmt.Sprintf("SUB V%X, V%X", vx, vy)
 		case 0x6:
 			expl = fmt.Sprintf("SHR V%X, V%X", vx, vy)

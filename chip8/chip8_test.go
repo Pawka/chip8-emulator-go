@@ -31,6 +31,17 @@ func TestExec(t *testing.T) {
 				assert.Equal(t, uint16(0x202), ch.pc)
 			},
 		},
+		// 00EE
+		"return_from_subroutine": {
+			opcode: 0x00EE,
+			setup: func(ch *chip8) {
+				ch.stack = append(ch.stack, 0x0260)
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Len(t, ch.stack, 0)
+				assert.Equal(t, uint16(0x260), ch.pc)
+			},
+		},
 		// 1NNN
 		"jmp": {
 			opcode: 0x12EE,
