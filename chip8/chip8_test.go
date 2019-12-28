@@ -58,6 +58,58 @@ func TestExec(t *testing.T) {
 				assert.Equal(t, uint16(0xAEE), ch.pc)
 			},
 		},
+		// 3XNN
+		"skip_if_equal_condition_must_be_skipped_because_values_are_equal": {
+			opcode: 0x3510,
+			setup: func(ch *chip8) {
+				ch.v[5] = 0x10
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint16(0x204), ch.pc)
+			},
+		},
+		"skip_if_equal_condition_must_not_be_skipped_because_values_are_not_equal": {
+			opcode: 0x3510,
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint16(0x202), ch.pc)
+			},
+		},
+		// 4XNN
+		"skip_if_not_equal_condition_must_be_skipped_because_values_are_not_equal": {
+			opcode: 0x4510,
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint16(0x204), ch.pc)
+			},
+		},
+		"skip_if_not_equal_condition_must_not_be_skipped_because_values_are_equal": {
+			opcode: 0x4510,
+			setup: func(ch *chip8) {
+				ch.v[5] = 0x10
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint16(0x202), ch.pc)
+			},
+		},
+		// 5XY0
+		"skip_if_registers_equal_must_be_skipped_because_values_are_equal": {
+			opcode: 0x5540,
+			setup: func(ch *chip8) {
+				ch.v[4] = 0x10
+				ch.v[5] = 0x10
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint16(0x204), ch.pc)
+			},
+		},
+		"skip_if_registers_equal_must_not_be_skipped_because_values_are_not_equal": {
+			opcode: 0x5540,
+			setup: func(ch *chip8) {
+				ch.v[5] = 0x10
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint16(0x202), ch.pc)
+			},
+		},
 	}
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {

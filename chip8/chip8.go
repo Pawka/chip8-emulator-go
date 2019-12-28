@@ -95,6 +95,27 @@ func (c *chip8) exec(pc uint16) {
 		addr := code & 0x0FFF
 		c.stack = append(c.stack, c.pc+2)
 		c.pc = addr
+	case 0x3:
+		vx := code & 0x0F00 >> 8
+		nn := code & 0x00FF
+		c.pc += 2
+		if uint8(nn) == c.v[vx] {
+			c.pc += 2
+		}
+	case 0x4:
+		vx := code & 0x0F00 >> 8
+		nn := code & 0x00FF
+		c.pc += 2
+		if uint8(nn) != c.v[vx] {
+			c.pc += 2
+		}
+	case 0x5:
+		vx := code & 0x0F00 >> 8
+		vy := code & 0x00F0 >> 4
+		c.pc += 2
+		if c.v[vy] == c.v[vx] {
+			c.pc += 2
+		}
 	default:
 		panic("Not implemented")
 	}
