@@ -16,13 +16,13 @@ func (d *displayMock) Clear() {
 
 func TestExec(t *testing.T) {
 	testCases := map[string]struct {
-		opcode []byte
+		opcode uint16
 		setup  func(ch *chip8)
 		assert func(t *testing.T, ch *chip8)
 	}{
 		// 00E0
 		"clear_display": {
-			opcode: []byte{0x00, 0xE0},
+			opcode: 0x00E0,
 			setup: func(ch *chip8) {
 				ch.display = &displayMock{}
 			},
@@ -33,14 +33,14 @@ func TestExec(t *testing.T) {
 		},
 		// 1NNN
 		"jmp": {
-			opcode: []byte{0x12, 0xEE},
+			opcode: 0x12EE,
 			assert: func(t *testing.T, ch *chip8) {
 				assert.Equal(t, uint16(0x2EE), ch.pc)
 			},
 		},
 		// 2NNN
 		"call_subroutine": {
-			opcode: []byte{0x2A, 0xEE},
+			opcode: 0x2AEE,
 			assert: func(t *testing.T, ch *chip8) {
 				assert.Equal(t, 1, len(ch.stack))
 				assert.Equal(t, uint16(0x202), ch.stack[0])
@@ -51,8 +51,10 @@ func TestExec(t *testing.T) {
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
 			chip8 := NewChip8().(*chip8)
-			chip8.ram.Memory[0x200] = test.opcode[0]
-			chip8.ram.Memory[0x200+1] = test.opcode[1]
+			a := (test.opcode & 0xFF00) >> 8
+			b := test.opcode & 0x00FF
+			chip8.ram.Memory[0x200] = uint8(a)
+			chip8.ram.Memory[0x200+1] = uint8(b)
 			if test.setup != nil {
 				test.setup(chip8)
 			}
