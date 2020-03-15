@@ -110,6 +110,16 @@ func TestExec(t *testing.T) {
 				assert.Equal(t, uint16(0x202), ch.pc)
 			},
 		},
+		// 6XNN
+		"set_nn_value_to_x": {
+			opcode: 0x6540,
+			setup: func(ch *chip8) {
+				ch.v[5] = 0x10
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x40), ch.v[5])
+			},
+		},
 	}
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {

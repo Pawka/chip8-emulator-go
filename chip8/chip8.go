@@ -116,6 +116,11 @@ func (c *chip8) exec(pc uint16) {
 		if c.v[vy] == c.v[vx] {
 			c.pc += 2
 		}
+	case 0x6:
+		vx := code & 0x0F00 >> 8
+		nn := code & 0x00FF
+		c.v[vx] = uint8(nn)
+
 	default:
 		panic("Not implemented")
 	}
