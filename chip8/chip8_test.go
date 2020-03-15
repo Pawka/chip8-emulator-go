@@ -120,6 +120,25 @@ func TestExec(t *testing.T) {
 				assert.Equal(t, uint8(0x40), ch.v[5])
 			},
 		},
+		// 7XNN
+		"add_nn_value_to_x": {
+			opcode: 0x7501,
+			setup: func(ch *chip8) {
+				ch.v[5] = 0x10
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x11), ch.v[5])
+			},
+		},
+		"add_nn_value_to_x_with_overflow": {
+			opcode: 0x7501,
+			setup: func(ch *chip8) {
+				ch.v[5] = 0xFF
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x0), ch.v[5])
+			},
+		},
 	}
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {

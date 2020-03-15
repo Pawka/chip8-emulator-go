@@ -120,6 +120,10 @@ func (c *chip8) exec(pc uint16) {
 		vx := code & 0x0F00 >> 8
 		nn := code & 0x00FF
 		c.v[vx] = uint8(nn)
+	case 0x7:
+		vx := code & 0x0F00 >> 8
+		nn := code & 0x00FF
+		c.v[vx] += uint8(nn)
 
 	default:
 		panic("Not implemented")
