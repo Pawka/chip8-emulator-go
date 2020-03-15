@@ -137,6 +137,169 @@ func TestExec(t *testing.T) {
 			},
 			assert: func(t *testing.T, ch *chip8) {
 				assert.Equal(t, uint8(0x0), ch.v[5])
+				assert.Equal(t, uint8(0x0), ch.v[0xF])
+			},
+		},
+		// 8XY0
+		"copy_y_value_to_x": {
+			opcode: 0x8230,
+			setup: func(ch *chip8) {
+				ch.v[2] = 0x10
+				ch.v[3] = 0x20
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x20), ch.v[2])
+				assert.Equal(t, ch.v[2], ch.v[3])
+			},
+		},
+		"set_vx_or_vy_to_vx": {
+			opcode: 0x8231,
+			setup: func(ch *chip8) {
+				ch.v[2] = 0x12
+				ch.v[3] = 0x3
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x13), ch.v[2])
+			},
+		},
+		"set_vx_and_vy_to_vx": {
+			opcode: 0x8232,
+			setup: func(ch *chip8) {
+				ch.v[2] = 0x5
+				ch.v[3] = 0x6
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x4), ch.v[2])
+			},
+		},
+		"set_vx_xor_vy_to_vx": {
+			opcode: 0x8233,
+			setup: func(ch *chip8) {
+				ch.v[2] = 0x12
+				ch.v[3] = 0x3
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x11), ch.v[2])
+			},
+		},
+		"add_nn_value_to_x_with_overflow_flag_set_to_0": {
+			opcode: 0x8234,
+			setup: func(ch *chip8) {
+				ch.v[2] = 0x1
+				ch.v[3] = 0x2
+				ch.v[0xF] = 0xFF
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x3), ch.v[2])
+				assert.Equal(t, uint8(0x0), ch.v[0xF])
+			},
+		},
+		"add_nn_value_to_x_with_overflow_flag_set_to_1": {
+			opcode: 0x8234,
+			setup: func(ch *chip8) {
+				ch.v[2] = 0xFF
+				ch.v[3] = 0x02
+				ch.v[0xF] = 0xFF
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x1), ch.v[2])
+				assert.Equal(t, uint8(0x1), ch.v[0xF])
+			},
+		},
+		"substract_nn_value_from_x_with_overflow_flag_set_to_0": {
+			opcode: 0x8235,
+			setup: func(ch *chip8) {
+				ch.v[2] = 0x2
+				ch.v[3] = 0x1
+				ch.v[0xF] = 0xFF
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x1), ch.v[2])
+				assert.Equal(t, uint8(0x0), ch.v[0xF])
+			},
+		},
+		"substract_nn_value_from_x_with_overflow_flag_set_to_1": {
+			opcode: 0x8235,
+			setup: func(ch *chip8) {
+				ch.v[2] = 0x1
+				ch.v[3] = 0x2
+				ch.v[0xF] = 0xFF
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0xFF), ch.v[2])
+				assert.Equal(t, uint8(0x1), ch.v[0xF])
+			},
+		},
+		"right_shift_with_vf_set_to_0": {
+			opcode: 0x8236,
+			setup: func(ch *chip8) {
+				ch.v[2] = 0x4
+				ch.v[3] = 0x5
+				ch.v[0xF] = 0xFF
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x2), ch.v[2])
+				assert.Equal(t, uint8(0x0), ch.v[0xF])
+			},
+		},
+		"right_shift_with_vf_set_to_1": {
+			opcode: 0x8236,
+			setup: func(ch *chip8) {
+				ch.v[2] = 0x5
+				ch.v[3] = 0x5
+				ch.v[0xF] = 0xFF
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x2), ch.v[2])
+				assert.Equal(t, uint8(0x1), ch.v[0xF])
+			},
+		},
+		"set_vx_equal_vy_minus_xy_when_vx_is_less_than_vy": {
+			opcode: 0x8237,
+			setup: func(ch *chip8) {
+				ch.v[2] = 0x3
+				ch.v[3] = 0x4
+				ch.v[0xF] = 0xFF
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x1), ch.v[2])
+				assert.Equal(t, uint8(0x1), ch.v[0xF])
+			},
+		},
+		"set_vx_equal_vy_minus_xy_when_vx_is_not_less_than_vy": {
+			opcode: 0x8237,
+			setup: func(ch *chip8) {
+				ch.v[2] = 0x4
+				ch.v[3] = 0x4
+				ch.v[0xF] = 0xFF
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x0), ch.v[2])
+				assert.Equal(t, uint8(0x0), ch.v[0xF])
+			},
+		},
+		"left_shift_with_vf_set_to_0": {
+			opcode: 0x823E,
+			setup: func(ch *chip8) {
+				ch.v[2] = 0x0
+				ch.v[3] = 0x4
+				ch.v[0xF] = 0xFF
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x8), ch.v[2])
+				assert.Equal(t, uint8(0x0), ch.v[0xF])
+			},
+		},
+		"left_shift_with_vf_set_to_1": {
+			opcode: 0x823E,
+			setup: func(ch *chip8) {
+				ch.v[2] = 0xFF
+				ch.v[3] = 0x8
+				ch.v[0xF] = 0xFF
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x10), ch.v[2])
+				assert.Equal(t, uint8(0x1), ch.v[0xF])
 			},
 		},
 	}

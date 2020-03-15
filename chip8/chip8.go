@@ -124,6 +124,48 @@ func (c *chip8) exec(pc uint16) {
 		vx := code & 0x0F00 >> 8
 		nn := code & 0x00FF
 		c.v[vx] += uint8(nn)
+	case 0x8:
+		vx := code & 0x0F00 >> 8
+		vy := code & 0x00F0 >> 4
+		last := code & 0x000F
+		switch last {
+		case 0x0:
+			c.v[vx] = c.v[vy]
+		case 0x1:
+			c.v[vx] = c.v[vx] | c.v[vy]
+		case 0x2:
+			c.v[vx] = c.v[vx] & c.v[vy]
+		case 0x3:
+			c.v[vx] = c.v[vx] ^ c.v[vy]
+		case 0x4:
+			res := uint16(c.v[vx]) + uint16(c.v[vy])
+			c.v[0xF] = 0
+			if res > 0xFF {
+				c.v[0xF] = 1
+			}
+			c.v[vx] = c.v[vx] + c.v[vy]
+		case 0x5:
+			c.v[0xF] = 0
+			// NOTE: Not sure if 0 should enable underoverflow flag.
+			if c.v[vx] < c.v[vy] {
+				c.v[0xF] = 1
+			}
+			c.v[vx] = c.v[vx] - c.v[vy]
+		case 0x6:
+			c.v[0xF] = c.v[vx] & 0x1
+			c.v[vx] = c.v[vy] >> 1
+		case 0x7:
+			c.v[0xF] = 0
+			if c.v[vy] > c.v[vx] {
+				c.v[0xF] = 1
+			}
+			c.v[vx] = c.v[vy] - c.v[vx]
+		case 0xE:
+			c.v[0xF] = c.v[vx] >> 7
+			c.v[vx] = c.v[vy] << 1
+		default:
+			panic("Not implemented")
+		}
 
 	default:
 		panic("Not implemented")
