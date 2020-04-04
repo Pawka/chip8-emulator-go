@@ -3,6 +3,8 @@ package chip8
 import (
 	"encoding/binary"
 	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/Pawka/chip8-emulator/chip8/display"
 )
@@ -183,6 +185,13 @@ func (c *chip8) exec(pc uint16) {
 	case 0xB:
 		addr := code & 0x0FFF
 		c.pc = addr + uint16(c.v[0])
+	case 0xC:
+		vx := code & 0x0F00 >> 8
+		last := code & 0x00FF
+		s := rand.NewSource(time.Now().UnixNano())
+		r := rand.New(s)
+		c.v[vx] = byte(r.Intn(256)) & byte(last)
+		c.pc += 2
 	default:
 		panic("Not implemented")
 	}

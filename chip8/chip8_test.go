@@ -356,6 +356,15 @@ func TestExec(t *testing.T) {
 				assert.Equal(t, uint16(0x125), ch.pc)
 			},
 		},
+		// CXNN
+		"set_vx_to_number_and_bitwise_0x0F": {
+			opcode: 0xC30F,
+			assert: func(t *testing.T, ch *chip8) {
+				assert.GreaterOrEqual(t, ch.v[3], byte(0))
+				assert.LessOrEqual(t, ch.v[3], byte(0xF))
+				assert.Equal(t, uint16(0x202), ch.pc)
+			},
+		},
 	}
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
