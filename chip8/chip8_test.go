@@ -346,6 +346,16 @@ func TestExec(t *testing.T) {
 				assert.Equal(t, 0x123, ch.i)
 			},
 		},
+		// BNNN
+		"jump_to_nnn+v0": {
+			opcode: 0xB123,
+			setup: func(ch *chip8) {
+				ch.v[0] = 0x2
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint16(0x125), ch.pc)
+			},
+		},
 	}
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
