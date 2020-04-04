@@ -339,6 +339,13 @@ func TestExec(t *testing.T) {
 				assert.Equal(t, uint16(0x202), ch.pc)
 			},
 		},
+		// ANNN
+		"set_i_to_nnn": {
+			opcode: 0xA123,
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, 0x123, ch.i)
+			},
+		},
 	}
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {

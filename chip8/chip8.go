@@ -176,7 +176,10 @@ func (c *chip8) exec(pc uint16) {
 			c.pc += 2
 		}
 		c.pc += 2
-
+	case 0xA:
+		addr := code & 0x0FFF
+		c.i = int(addr)
+		c.pc += 2
 	default:
 		panic("Not implemented")
 	}
