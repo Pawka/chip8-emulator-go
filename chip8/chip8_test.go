@@ -319,6 +319,26 @@ func TestExec(t *testing.T) {
 				assert.Equal(t, uint16(0x202), ch.pc)
 			},
 		},
+		// 9XY0
+		"skip_next_function_when_x_not_equal_y": {
+			opcode: 0x9120,
+			setup: func(ch *chip8) {
+				ch.v[1] = 0x1
+				ch.v[2] = 0x2
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint16(0x204), ch.pc)
+			},
+		},
+		"not_skip_next_function_when_x_equal_y": {
+			opcode: 0x9110,
+			setup: func(ch *chip8) {
+				ch.v[1] = 0x1
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint16(0x202), ch.pc)
+			},
+		},
 	}
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {

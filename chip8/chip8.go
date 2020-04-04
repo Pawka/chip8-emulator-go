@@ -169,6 +169,13 @@ func (c *chip8) exec(pc uint16) {
 			panic("Not implemented")
 		}
 		c.pc += 2
+	case 0x9:
+		vx := code & 0x0F00 >> 8
+		vy := code & 0x00F0 >> 4
+		if vx != vy {
+			c.pc += 2
+		}
+		c.pc += 2
 
 	default:
 		panic("Not implemented")
