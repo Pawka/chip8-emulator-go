@@ -18,11 +18,18 @@ type Display interface {
 	Clear()
 	// Show the screen.
 	Show()
+	// Point draws a point at x y
+	Point(x, y int)
 }
 
 type display struct {
-	s      tcell.Screen
-	screen [][]int
+	s       tcell.Screen
+	screen  [][]int
+	sprites chan sprite
+}
+
+type sprite struct {
+	x, y int
 }
 
 // New initializes a new display
@@ -36,7 +43,8 @@ func New() (Display, error) {
 		return nil, fmt.Errorf("initializing screen: %v", err)
 	}
 	d := &display{
-		s: s,
+		s:       s,
+		sprites: make(chan sprite),
 	}
 	return d, nil
 }
@@ -46,7 +54,6 @@ func (d *display) Show() {
 	d.s.SetStyle(tcell.StyleDefault.
 		Foreground(tcell.ColorWhite).
 		Background(tcell.ColorBlack))
-	d.Clear()
 
 	quit := make(chan struct{})
 	go func() {
@@ -59,22 +66,24 @@ func (d *display) Show() {
 					return
 				}
 			case *tcell.EventResize:
-				d.Clear()
 				d.s.Sync()
 			}
 		}
 	}()
 
+	d.Clear()
+	d.s.Show()
 loop:
 	for {
 		select {
 		case <-quit:
 			break loop
+		case sp := <-d.sprites:
+			d.drawSprite(sp)
 		case <-time.After(time.Millisecond * 50):
 		}
-
-		d.DrawScreen(width, height)
 		d.s.Show()
+
 	}
 	d.s.Fini()
 }
@@ -98,6 +107,18 @@ func (d *display) DrawScreen(w, h int) {
 	}
 }
 
+func (d *display) drawSprite(s sprite) {
+	st := tcell.StyleDefault.
+		Background(tcell.ColorBlack)
+	d.SetContent(s.x, s.y, ' ', nil, st)
+}
+
+func (d *display) Point(x, y int) {
+	sp := sprite{x, y}
+	d.sprites <- sp
+}
+
 func (d *display) Clear() {
 	d.s.Clear()
+	d.DrawScreen(width, height)
 }
