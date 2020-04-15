@@ -113,7 +113,24 @@ func (d *display) DrawScreen(w, h int) {
 }
 
 func (d *display) drawSprite(s sprite) {
-	d.SetContent(s.x, s.y, ' ', nil, d.fgStyle)
+	st := map[byte]tcell.Style{
+		0: d.bgStyle,
+		1: d.fgStyle,
+	}
+
+	const spriteWidth = 8
+
+	for row := 0; row < len(s.payload); row++ {
+		for i := spriteWidth - 1; i >= 0; i-- {
+			pixel := (s.payload[row] >> i) & 0x1
+			x := s.x + spriteWidth - i
+			y := s.y + row
+			if x < 0 || x >= width || y < 0 || y >= height {
+				continue
+			}
+			d.SetContent(x, y, ' ', nil, st[pixel])
+		}
+	}
 }
 
 func (d *display) Point(x, y int) {
