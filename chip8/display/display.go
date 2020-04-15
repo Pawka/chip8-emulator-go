@@ -20,16 +20,21 @@ type Display interface {
 	Show()
 	// Point draws a point at x y
 	Point(x, y int)
+	// Sprite at x, y coordinates draws a sprite which is 8 symbols width and n
+	// lines height.
+	Sprite(x, y int, payload []byte)
 }
 
 type display struct {
-	s       tcell.Screen
-	screen  [][]int
-	sprites chan sprite
+	s                tcell.Screen
+	screen           [][]int
+	sprites          chan sprite
+	bgStyle, fgStyle tcell.Style
 }
 
 type sprite struct {
-	x, y int
+	x, y    int
+	payload []byte
 }
 
 // New initializes a new display
@@ -42,9 +47,13 @@ func New() (Display, error) {
 	if err != nil {
 		return nil, fmt.Errorf("initializing screen: %v", err)
 	}
+	fg := tcell.StyleDefault.Background(tcell.ColorBlack)
+	bg := tcell.StyleDefault.Background(tcell.ColorWhite)
 	d := &display{
 		s:       s,
 		sprites: make(chan sprite),
+		bgStyle: bg,
+		fgStyle: fg,
 	}
 	return d, nil
 }
@@ -96,25 +105,26 @@ func (d *display) SetContent(x int, y int, mainc rune, combc []rune, style tcell
 }
 
 func (d *display) DrawScreen(w, h int) {
-	st := tcell.StyleDefault.
-		Background(tcell.ColorWhite)
-	d.SetContent(0, 0, ' ', nil, st)
-
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
-			d.SetContent(x, y, ' ', nil, st)
+			d.SetContent(x, y, ' ', nil, d.bgStyle)
 		}
 	}
 }
 
 func (d *display) drawSprite(s sprite) {
-	st := tcell.StyleDefault.
-		Background(tcell.ColorBlack)
-	d.SetContent(s.x, s.y, ' ', nil, st)
+	d.SetContent(s.x, s.y, ' ', nil, d.fgStyle)
 }
 
 func (d *display) Point(x, y int) {
-	sp := sprite{x, y}
+	var point byte
+	point = 1 << 7
+	sp := sprite{x, y, []byte{point}}
+	d.sprites <- sp
+}
+
+func (d *display) Sprite(x, y int, payload []byte) {
+	sp := sprite{x, y, payload}
 	d.sprites <- sp
 }
 
