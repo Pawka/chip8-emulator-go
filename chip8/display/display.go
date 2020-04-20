@@ -70,7 +70,9 @@ func (d *display) Show() {
 			ev := d.s.PollEvent()
 			switch ev := ev.(type) {
 			case *tcell.EventKey:
-				if ev.Key() == tcell.KeyCtrlC || ev.Key() == tcell.KeyEscape {
+				if ev.Key() == tcell.KeyCtrlC ||
+					ev.Key() == tcell.KeyEscape ||
+					ev.Rune() == 'Q' || ev.Rune() == 'q' {
 					close(quit)
 					return
 				}

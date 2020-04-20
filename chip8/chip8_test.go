@@ -7,7 +7,26 @@ import (
 )
 
 type displayMock struct {
-	clear bool
+	clear, show, point, sprite bool
+	x, y                       int
+	payload                    []byte
+}
+
+func (d *displayMock) Show() {
+	d.show = true
+}
+
+func (d *displayMock) Point(x int, y int) {
+	d.point = true
+	d.x = x
+	d.y = y
+}
+
+func (d *displayMock) Sprite(x int, y int, payload []byte) {
+	d.sprite = true
+	d.x = x
+	d.y = y
+	d.payload = payload
 }
 
 func (d *displayMock) Clear() {
@@ -368,7 +387,8 @@ func TestExec(t *testing.T) {
 	}
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
-			chip8 := NewChip8().(*chip8)
+			ctx := Ctx{}
+			chip8 := NewChip8(ctx).(*chip8)
 			a := (test.opcode & 0xFF00) >> 8
 			b := test.opcode & 0x00FF
 			chip8.ram.Memory[0x200] = uint8(a)

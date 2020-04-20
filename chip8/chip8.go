@@ -2,6 +2,7 @@ package chip8
 
 import (
 	"encoding/binary"
+	"flag"
 	"fmt"
 	"math/rand"
 	"time"
@@ -40,9 +41,22 @@ const stackSize = 16
 const timerInitialValue = 60
 
 // NewChip8 creates a new instance of emulator.
-func NewChip8() Chip8 {
+func NewChip8(ctx Ctx) Chip8 {
+	var d display.Display
+
+	// Do not initialize a new display during test run.
+	// Creating it breaks test output.
+	if ctx.IsDisplay() == true && flag.Lookup("test.v") == nil {
+		var err error
+		d, err = display.New()
+		if err != nil {
+			// TODO: Return as error
+			panic(err)
+		}
+	}
+
 	c := &chip8{
-		display:    display.New(),
+		display:    d,
 		ram:        newRAM(),
 		v:          make([]byte, registersCount),
 		stack:      make([]uint16, 0, stackSize),
@@ -65,10 +79,41 @@ func (c *chip8) Run(ctx Ctx) {
 		return
 	}
 
-	c.pc = 0x200
-	for {
-		c.exec(c.pc)
+	quit := make(chan struct{})
+	if ctx.IsDisplay() {
+		go func() {
+			c.display.Show()
+			close(quit)
+		}()
+	} else {
+		close(quit)
 	}
+
+	go func() {
+		// INVADER
+		//
+		// X.XXX.X.     0b10111010  $BA
+		// .XXXXX..     0b01111100  $7C
+		// XX.X.XX.     0b11010110  $D6
+		// XXXXXXX.     0b11111110  $FE
+		// .X.X.X..     0b01010100  $54
+		// X.X.X.X.     0b10101010  $AA
+		invader := []byte{0xBA, 0x7C, 0xD6, 0xFE, 0x54, 0xAA}
+		for {
+			for i := -7; i < 40; i += 3 {
+				c.display.Sprite(i*2, i, invader)
+				time.Sleep(time.Millisecond * 100)
+				c.display.Clear()
+			}
+		}
+	}()
+
+	c.pc = 0x200
+	//for {
+	//	c.exec(c.pc)
+	//}
+
+	<-quit
 }
 
 func (c *chip8) exec(pc uint16) {

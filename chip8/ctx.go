@@ -11,6 +11,11 @@ type Ctx struct {
 	path        string
 }
 
+// IsDisplay returns true if display is supposed to be created.
+func (c Ctx) IsDisplay() bool {
+	return !c.disassemble
+}
+
 const (
 	_ = iota
 
