@@ -384,6 +384,25 @@ func TestExec(t *testing.T) {
 				assert.Equal(t, uint16(0x202), ch.pc)
 			},
 		},
+		// DXYN
+		"draw_a_sprite": {
+			opcode: 0xD123,
+			setup: func(ch *chip8) {
+				ch.display = &displayMock{}
+				ch.i = 0x300
+				ch.ram.Memory[0x300] = 0x2
+				ch.ram.Memory[0x301] = 0x3
+				ch.ram.Memory[0x302] = 0x4
+				ch.ram.Memory[0x303] = 0x5
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.True(t, ch.display.(*displayMock).sprite)
+				assert.Equal(t, 1, ch.display.(*displayMock).x)
+				assert.Equal(t, 2, ch.display.(*displayMock).y)
+				assert.Equal(t, []byte{0x2, 0x3, 0x4}, ch.display.(*displayMock).payload)
+				assert.Equal(t, uint16(0x202), ch.pc)
+			},
+		},
 	}
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {

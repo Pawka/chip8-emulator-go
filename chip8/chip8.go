@@ -237,6 +237,12 @@ func (c *chip8) exec(pc uint16) {
 		r := rand.New(s)
 		c.v[vx] = byte(r.Intn(256)) & byte(last)
 		c.pc += 2
+	case 0xD:
+		vx := code & 0x0F00 >> 8
+		vy := code & 0x00F0 >> 4
+		last := code & 0x000F
+		c.display.Sprite(int(vx), int(vy), c.ram.Memory[c.i:c.i+int(last)])
+		c.pc += 2
 	default:
 		panic("Not implemented")
 	}
