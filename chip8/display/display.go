@@ -143,7 +143,7 @@ func (d *display) Point(x, y int) {
 }
 
 func (d *display) Sprite(x, y int, payload []byte) {
-	sp := sprite{x, y, payload}
+	sp := sprite{x - 1, y, payload}
 	d.sprites <- sp
 }
 
