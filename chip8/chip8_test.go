@@ -389,6 +389,8 @@ func TestExec(t *testing.T) {
 			opcode: 0xD123,
 			setup: func(ch *chip8) {
 				ch.display = &displayMock{}
+				ch.v[1] = 10
+				ch.v[2] = 20
 				ch.i = 0x300
 				ch.ram.Memory[0x300] = 0x2
 				ch.ram.Memory[0x301] = 0x3
@@ -397,8 +399,8 @@ func TestExec(t *testing.T) {
 			},
 			assert: func(t *testing.T, ch *chip8) {
 				assert.True(t, ch.display.(*displayMock).sprite)
-				assert.Equal(t, 1, ch.display.(*displayMock).x)
-				assert.Equal(t, 2, ch.display.(*displayMock).y)
+				assert.Equal(t, 10, ch.display.(*displayMock).x)
+				assert.Equal(t, 20, ch.display.(*displayMock).y)
 				assert.Equal(t, []byte{0x2, 0x3, 0x4}, ch.display.(*displayMock).payload)
 				assert.Equal(t, uint16(0x202), ch.pc)
 			},

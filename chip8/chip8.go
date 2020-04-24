@@ -89,31 +89,18 @@ func (c *chip8) Run(ctx Ctx) {
 		close(quit)
 	}
 
-	go func() {
-		// INVADER
-		//
-		// X.XXX.X.     0b10111010  $BA
-		// .XXXXX..     0b01111100  $7C
-		// XX.X.XX.     0b11010110  $D6
-		// XXXXXXX.     0b11111110  $FE
-		// .X.X.X..     0b01010100  $54
-		// X.X.X.X.     0b10101010  $AA
-		invader := []byte{0xBA, 0x7C, 0xD6, 0xFE, 0x54, 0xAA}
-		for {
-			for i := -7; i < 40; i += 3 {
-				c.display.Sprite(i*2, i, invader)
-				time.Sleep(time.Millisecond * 100)
-				c.display.Clear()
-			}
-		}
-	}()
-
 	c.pc = 0x200
-	//for {
-	//	c.exec(c.pc)
-	//}
 
-	<-quit
+loop:
+	for {
+		select {
+		case <-quit:
+			fmt.Println("DONE")
+			break loop
+		case <-time.After(time.Millisecond * 30):
+			c.exec(c.pc)
+		}
+	}
 }
 
 func (c *chip8) exec(pc uint16) {
@@ -238,10 +225,13 @@ func (c *chip8) exec(pc uint16) {
 		c.v[vx] = byte(r.Intn(256)) & byte(last)
 		c.pc += 2
 	case 0xD:
+		// TODO: Implement I writing and XOR.
 		vx := code & 0x0F00 >> 8
 		vy := code & 0x00F0 >> 4
 		last := code & 0x000F
-		c.display.Sprite(int(vx), int(vy), c.ram.Memory[c.i:c.i+int(last)])
+		x := c.v[vx]
+		y := c.v[vy]
+		c.display.Sprite(int(x), int(y), c.ram.Memory[c.i:c.i+int(last)])
 		c.pc += 2
 	default:
 		panic("Not implemented")
@@ -359,5 +349,7 @@ func (c *chip8) disassemble(pc int) {
 		expl = fmt.Sprintf("> %X", first)
 	}
 
-	fmt.Printf("%04x\t%04X\t%s\n", pc, code, expl)
+	if code != 0x0 {
+		fmt.Printf("%04x\t%04X\t%s\n", pc, code, expl)
+	}
 }
