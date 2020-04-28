@@ -285,6 +285,9 @@ func (c *chip8) exec(pc uint16) {
 		switch end {
 		case 0x07:
 			c.v[vx] = c.delayTimer
+		case 0x0A:
+			key := c.display.PollKey()
+			c.v[vx] = c._keysMap[*key]
 		default:
 			panic("Not implemented")
 		}

@@ -484,6 +484,20 @@ func TestExec(t *testing.T) {
 				assert.Equal(t, uint16(0x202), ch.pc)
 			},
 		},
+		// FX0A
+		"set_pressed_key_to_vx": {
+			opcode: 0xF40A,
+			setup: func(ch *chip8) {
+				key1 := '9'
+				ch.display = &displayMock{
+					keys: []*rune{&key1},
+				}
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x9), ch.v[0x4])
+				assert.Equal(t, uint16(0x202), ch.pc)
+			},
+		},
 	}
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
