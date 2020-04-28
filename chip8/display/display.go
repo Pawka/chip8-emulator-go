@@ -23,10 +23,15 @@ type Display interface {
 	// Sprite at x, y coordinates draws a sprite which is 8 symbols width and n
 	// lines height.
 	Sprite(x, y int, payload []byte)
+
+	// PollKey returns a pressed key.
+	PollKey() *rune
 }
 
 type display struct {
 	s                tcell.Screen
+	keych            chan rune
+	quit             chan struct{}
 	screen           [][]int
 	sprites          chan sprite
 	bgStyle, fgStyle tcell.Style
@@ -52,6 +57,7 @@ func New() (Display, error) {
 	d := &display{
 		s:       s,
 		sprites: make(chan sprite),
+		keych:   make(chan rune, 10),
 		bgStyle: bg,
 		fgStyle: fg,
 	}
@@ -64,7 +70,7 @@ func (d *display) Show() {
 		Foreground(tcell.ColorWhite).
 		Background(tcell.ColorBlack))
 
-	quit := make(chan struct{})
+	d.quit = make(chan struct{})
 	go func() {
 		for {
 			ev := d.s.PollEvent()
@@ -72,9 +78,15 @@ func (d *display) Show() {
 			case *tcell.EventKey:
 				if ev.Key() == tcell.KeyCtrlC ||
 					ev.Key() == tcell.KeyEscape ||
-					ev.Rune() == 'Q' || ev.Rune() == 'q' {
-					close(quit)
+					ev.Rune() == 'q' {
+					close(d.quit)
 					return
+				}
+				if ev.Rune() >= '0' && ev.Rune() <= '9' ||
+					ev.Rune() >= 'a' && ev.Rune() <= 'f' {
+					go func() {
+						d.keych <- ev.Rune()
+					}()
 				}
 			case *tcell.EventResize:
 				d.s.Sync()
@@ -87,7 +99,7 @@ func (d *display) Show() {
 loop:
 	for {
 		select {
-		case <-quit:
+		case <-d.quit:
 			break loop
 		case sp := <-d.sprites:
 			d.drawSprite(sp)
@@ -150,4 +162,15 @@ func (d *display) Sprite(x, y int, payload []byte) {
 func (d *display) Clear() {
 	d.s.Clear()
 	d.DrawScreen(width, height)
+}
+
+func (d *display) PollKey() *rune {
+	select {
+	case <-d.quit:
+		return nil
+	case r := <-d.keych:
+		return &r
+	default:
+		return nil
+	}
 }

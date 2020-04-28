@@ -7,9 +7,11 @@ import (
 )
 
 type displayMock struct {
-	clear, show, point, sprite bool
-	x, y                       int
-	payload                    []byte
+	clear, show, point, sprite, pollkey bool
+	x, y                                int
+	payload                             []byte
+	// Keys to be returned by PollKey method
+	keys []*rune
 }
 
 func (d *displayMock) Show() {
@@ -31,6 +33,15 @@ func (d *displayMock) Sprite(x int, y int, payload []byte) {
 
 func (d *displayMock) Clear() {
 	d.clear = true
+}
+
+func (d *displayMock) PollKey() *rune {
+	if len(d.keys) == 0 {
+		return nil
+	}
+	val := d.keys[0]
+	d.keys = d.keys[1:len(d.keys)]
+	return val
 }
 
 func TestExec(t *testing.T) {
@@ -402,6 +413,62 @@ func TestExec(t *testing.T) {
 				assert.Equal(t, 10, ch.display.(*displayMock).x)
 				assert.Equal(t, 20, ch.display.(*displayMock).y)
 				assert.Equal(t, []byte{0x2, 0x3, 0x4}, ch.display.(*displayMock).payload)
+				assert.Equal(t, uint16(0x202), ch.pc)
+			},
+		},
+		// EX9E
+		"skip_instruction_when_key_is_pressed": {
+			opcode: 0xEA9E,
+			setup: func(ch *chip8) {
+				key := '9'
+				ch.display = &displayMock{
+					keys: []*rune{&key},
+				}
+				ch.v[0xA] = 9
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint16(0x204), ch.pc)
+			},
+		},
+		"do_not_skip_instruction_when_other_key_is_pressed": {
+			opcode: 0xEA9E,
+			setup: func(ch *chip8) {
+				key1 := '9'
+				key2 := '1'
+				ch.display = &displayMock{
+					keys: []*rune{&key1, &key2},
+				}
+				ch.v[0xA] = 2
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint16(0x202), ch.pc)
+			},
+		},
+		// EXA1
+		"skip_instruction_when_key_not_is_pressed": {
+			opcode: 0xEAA1,
+			setup: func(ch *chip8) {
+				key := '9'
+				ch.display = &displayMock{
+					keys: []*rune{&key},
+				}
+				ch.v[0xA] = 8
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint16(0x204), ch.pc)
+			},
+		},
+		"do_not_skip_instruction_when_key_is_pressed": {
+			opcode: 0xEAA1,
+			setup: func(ch *chip8) {
+				key1 := '9'
+				key2 := '1'
+				ch.display = &displayMock{
+					keys: []*rune{&key1, &key2},
+				}
+				ch.v[0xA] = 9
+			},
+			assert: func(t *testing.T, ch *chip8) {
 				assert.Equal(t, uint16(0x202), ch.pc)
 			},
 		},

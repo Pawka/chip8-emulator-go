@@ -34,6 +34,9 @@ type chip8 struct {
 	pc uint16
 	// 16bit register (For memory address)
 	i int
+
+	// Map key rune to byte value. Key values are from 0x0 to 0xF.
+	_keysMap map[rune]byte
 }
 
 const registersCount = 16
@@ -63,6 +66,25 @@ func NewChip8(ctx Ctx) Chip8 {
 		delayTimer: timerInitialValue,
 		soundTimer: timerInitialValue,
 		pc:         0x200,
+
+		_keysMap: map[rune]byte{
+			'0': 0,
+			'1': 1,
+			'2': 2,
+			'3': 3,
+			'4': 4,
+			'5': 5,
+			'6': 6,
+			'7': 7,
+			'8': 8,
+			'9': 9,
+			'a': 0xA,
+			'b': 0xB,
+			'c': 0xC,
+			'd': 0xD,
+			'e': 0xE,
+			'f': 0xF,
+		},
 	}
 
 	return c
@@ -95,7 +117,6 @@ loop:
 	for {
 		select {
 		case <-quit:
-			fmt.Println("DONE")
 			break loop
 		case <-time.After(time.Millisecond * 30):
 			c.exec(c.pc)
@@ -233,6 +254,29 @@ func (c *chip8) exec(pc uint16) {
 		y := c.v[vy]
 		c.display.Sprite(int(x), int(y), c.ram.Memory[c.i:c.i+int(last)])
 		c.pc += 2
+	case 0xE:
+		// Collect keys pressed during the cycle.
+		pressed := make(map[byte]bool)
+		for key := c.display.PollKey(); key != nil; key = c.display.PollKey() {
+			pressed[c._keysMap[*key]] = true
+		}
+
+		vx := code & 0x0F00 >> 8
+		end := code & 0x00FF
+		switch end {
+		case 0x9E:
+			if pressed[c.v[vx]] == true {
+				c.pc += 2
+			}
+		case 0xA1:
+			if pressed[c.v[vx]] != true {
+				c.pc += 2
+			}
+		default:
+			panic("Not implemented")
+		}
+		c.pc += 2
+
 	default:
 		panic("Not implemented")
 	}
