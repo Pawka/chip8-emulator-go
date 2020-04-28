@@ -27,8 +27,8 @@ type chip8 struct {
 	// 16 level stack
 	stack []uint16
 
-	delayTimer int
-	soundTimer int
+	delayTimer byte
+	soundTimer byte
 
 	// program counter
 	pc uint16
@@ -120,6 +120,9 @@ loop:
 			break loop
 		case <-time.After(time.Millisecond * 30):
 			c.exec(c.pc)
+			if c.delayTimer > 0 {
+				c.delayTimer--
+			}
 		}
 	}
 }
@@ -276,7 +279,16 @@ func (c *chip8) exec(pc uint16) {
 			panic("Not implemented")
 		}
 		c.pc += 2
-
+	case 0xF:
+		vx := code & 0x0F00 >> 8
+		end := code & 0x00FF
+		switch end {
+		case 0x07:
+			c.v[vx] = c.delayTimer
+		default:
+			panic("Not implemented")
+		}
+		c.pc += 2
 	default:
 		panic("Not implemented")
 	}
