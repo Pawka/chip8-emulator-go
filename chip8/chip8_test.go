@@ -18,17 +18,19 @@ func (d *displayMock) Show() {
 	d.show = true
 }
 
-func (d *displayMock) Point(x int, y int) {
+func (d *displayMock) Point(x int, y int) bool {
 	d.point = true
 	d.x = x
 	d.y = y
+	return false
 }
 
-func (d *displayMock) Sprite(x int, y int, payload []byte) {
+func (d *displayMock) Sprite(x int, y int, payload []byte) bool {
 	d.sprite = true
 	d.x = x
 	d.y = y
 	d.payload = payload
+	return true
 }
 
 func (d *displayMock) Clear() {
@@ -410,6 +412,7 @@ func TestExec(t *testing.T) {
 			},
 			assert: func(t *testing.T, ch *chip8) {
 				assert.True(t, ch.display.(*displayMock).sprite)
+				assert.Equal(t, byte(1), ch.v[0xF])
 				assert.Equal(t, 10, ch.display.(*displayMock).x)
 				assert.Equal(t, 20, ch.display.(*displayMock).y)
 				assert.Equal(t, []byte{0x2, 0x3, 0x4}, ch.display.(*displayMock).payload)

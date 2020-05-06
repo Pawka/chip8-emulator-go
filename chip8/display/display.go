@@ -18,11 +18,12 @@ type Display interface {
 	Clear()
 	// Show the screen.
 	Show()
-	// Point draws a point at x y
-	Point(x, y int)
+	// Point draws a point at x y. Return true if any pixel is flipped from high
+	// to low.
+	Point(x, y int) bool
 	// Sprite at x, y coordinates draws a sprite which is 8 symbols width and n
-	// lines height.
-	Sprite(x, y int, payload []byte)
+	// lines height. Return true if any pixel is flipped from high to low.
+	Sprite(x, y int, payload []byte) bool
 
 	// PollKey returns a pressed key.
 	PollKey() *rune
@@ -38,8 +39,9 @@ type display struct {
 }
 
 type sprite struct {
-	x, y    int
-	payload []byte
+	x, y        int
+	payload     []byte
+	collisionch chan bool
 }
 
 // New initializes a new display
@@ -111,28 +113,41 @@ loop:
 	d.s.Fini()
 }
 
-func (d *display) SetContent(x int, y int, mainc rune, combc []rune, style tcell.Style) {
+func (d *display) setContent(x int, y int, mainc rune, combc []rune, style tcell.Style) {
 	dw, dh := d.s.Size()
 	_y := dh/2 - height/2
 	_x := dw/2 - width/2
 	d.s.SetContent(_x+x, _y+y, mainc, combc, style)
 }
 
+func (d *display) isSetContent(x int, y int) bool {
+	dw, dh := d.s.Size()
+	_y := dh/2 - height/2
+	_x := dw/2 - width/2
+	_, _, style, _ := d.s.GetContent(_x+x, _y+y)
+	return style == d.getStyle(1)
+}
+
 func (d *display) DrawScreen(w, h int) {
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
-			d.SetContent(x, y, ' ', nil, d.bgStyle)
+			d.setContent(x, y, ' ', nil, d.bgStyle)
 		}
 	}
 }
 
-func (d *display) drawSprite(s sprite) {
+func (d *display) getStyle(b byte) tcell.Style {
 	st := map[byte]tcell.Style{
 		0: d.bgStyle,
 		1: d.fgStyle,
 	}
 
+	return st[b]
+}
+
+func (d *display) drawSprite(s sprite) {
 	const spriteWidth = 8
+	collision := false
 
 	for row := 0; row < len(s.payload); row++ {
 		for i := spriteWidth - 1; i >= 0; i-- {
@@ -142,21 +157,32 @@ func (d *display) drawSprite(s sprite) {
 			if x < 0 || x >= width || y < 0 || y >= height {
 				continue
 			}
-			d.SetContent(x, y, ' ', nil, st[pixel])
+			if collision == false {
+				set := d.isSetContent(x, y)
+				if set == true && pixel == 1 {
+					collision = true
+				}
+			}
+			d.setContent(x, y, ' ', nil, d.getStyle(pixel))
 		}
 	}
+	s.collisionch <- collision
 }
 
-func (d *display) Point(x, y int) {
+func (d *display) Point(x, y int) bool {
 	var point byte
 	point = 1 << 7
-	sp := sprite{x, y, []byte{point}}
+	ch := make(chan bool)
+	sp := sprite{x, y, []byte{point}, ch}
 	d.sprites <- sp
+	return <-sp.collisionch
 }
 
-func (d *display) Sprite(x, y int, payload []byte) {
-	sp := sprite{x - 1, y, payload}
+func (d *display) Sprite(x, y int, payload []byte) bool {
+	ch := make(chan bool)
+	sp := sprite{x - 1, y, payload, ch}
 	d.sprites <- sp
+	return <-sp.collisionch
 }
 
 func (d *display) Clear() {

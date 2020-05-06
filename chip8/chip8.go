@@ -118,7 +118,7 @@ loop:
 		select {
 		case <-quit:
 			break loop
-		case <-time.After(time.Millisecond * 30):
+		case <-time.After(time.Millisecond * 10):
 			c.exec(c.pc)
 			if c.delayTimer > 0 {
 				c.delayTimer--
@@ -255,7 +255,9 @@ func (c *chip8) exec(pc uint16) {
 		last := code & 0x000F
 		x := c.v[vx]
 		y := c.v[vy]
-		c.display.Sprite(int(x), int(y), c.ram.Memory[c.i:c.i+int(last)])
+		if true == c.display.Sprite(int(x), int(y), c.ram.Memory[c.i:c.i+int(last)]) {
+			c.v[0xF] = 1
+		}
 		c.pc += 2
 	case 0xE:
 		// Collect keys pressed during the cycle.
