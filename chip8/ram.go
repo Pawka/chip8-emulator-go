@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 )
 
-const memorySize = 4098
+const memorySize = 4096
 
 // programStartPos defines position in the memory where programs should be
 // loaded.
