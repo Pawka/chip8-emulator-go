@@ -551,6 +551,42 @@ func TestExec(t *testing.T) {
 				assert.Equal(t, uint16(0x202), ch.pc)
 			},
 		},
+		// FX55
+		"fill_memory_with_values_from_v0_to_vx": {
+			opcode: 0xF455,
+			setup: func(ch *chip8) {
+				ch.i = 2
+				ch.v[0x0] = 0x10
+				ch.v[0x1] = 0x11
+				ch.v[0x2] = 0x12
+				ch.v[0x3] = 0x13
+				ch.v[0x4] = 0x14
+				ch.v[0x5] = 0x15
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, []byte{0, 0, 0x10, 0x11, 0x12, 0x13, 0x14, 0}, ch.ram.Memory[0:8])
+				assert.Equal(t, uint16(0x202), ch.pc)
+				assert.Equal(t, 2, ch.i)
+			},
+		},
+		// FX65
+		"fill_v0_to_vx_registers_from_memory": {
+			opcode: 0xF465,
+			setup: func(ch *chip8) {
+				ch.i = 2
+				data := []byte{0, 0, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15}
+				copy(ch.ram.Memory, data)
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, 2, ch.i)
+				assert.Equal(t, uint16(0x202), ch.pc)
+
+				for i := 0; i <= 4; i++ {
+					assert.Equal(t, ch.v[i], uint8(0x10+i))
+				}
+				assert.Equal(t, ch.v[0x5], uint8(0))
+			},
+		},
 	}
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
