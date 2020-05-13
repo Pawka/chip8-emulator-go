@@ -290,6 +290,10 @@ func (c *chip8) exec(pc uint16) {
 		case 0x0A:
 			key := c.display.PollKey()
 			c.v[vx] = c._keysMap[*key]
+		case 0x15:
+			c.delayTimer = c.v[vx]
+		case 0x18:
+			c.soundTimer = c.v[vx]
 		default:
 			panic("Not implemented")
 		}

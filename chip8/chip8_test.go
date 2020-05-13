@@ -501,6 +501,28 @@ func TestExec(t *testing.T) {
 				assert.Equal(t, uint16(0x202), ch.pc)
 			},
 		},
+		// FX15
+		"set_delay_timer_to_vx": {
+			opcode: 0xF415,
+			setup: func(ch *chip8) {
+				ch.v[0x4] = 0x10
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x10), ch.delayTimer)
+				assert.Equal(t, uint16(0x202), ch.pc)
+			},
+		},
+		// FX18
+		"set_sound_timer_to_vx": {
+			opcode: 0xF418,
+			setup: func(ch *chip8) {
+				ch.v[0x4] = 0x10
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint8(0x10), ch.soundTimer)
+				assert.Equal(t, uint16(0x202), ch.pc)
+			},
+		},
 	}
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
