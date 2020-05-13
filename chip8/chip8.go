@@ -294,6 +294,13 @@ func (c *chip8) exec(pc uint16) {
 			c.delayTimer = c.v[vx]
 		case 0x18:
 			c.soundTimer = c.v[vx]
+		case 0x1E:
+			// NOTE: It is possible range overflow should be handled.
+			c.i += int(c.v[vx])
+			c.v[0xF] = 0
+			if c.i > memorySize-1 {
+				c.v[0xF] = 1
+			}
 		default:
 			panic("Not implemented")
 		}

@@ -523,6 +523,34 @@ func TestExec(t *testing.T) {
 				assert.Equal(t, uint16(0x202), ch.pc)
 			},
 		},
+		// FX1E
+		"add_vx_to_i": {
+			opcode: 0xF41E,
+			setup: func(ch *chip8) {
+				ch.i = 10
+				ch.v[0x4] = 0x1
+				ch.v[0xF] = 0x10
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, 11, ch.i)
+				assert.Equal(t, uint8(0), ch.v[0xF])
+				assert.Equal(t, uint16(0x202), ch.pc)
+			},
+		},
+		// FX1E
+		"add_vx_to_i_with_overflow": {
+			opcode: 0xF41E,
+			setup: func(ch *chip8) {
+				ch.i = memorySize - 2
+				ch.v[0x4] = 0x9
+				ch.v[0xF] = 0x10
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, memorySize+7, ch.i)
+				assert.Equal(t, uint8(1), ch.v[0xF])
+				assert.Equal(t, uint16(0x202), ch.pc)
+			},
+		},
 	}
 	for name, test := range testCases {
 		t.Run(name, func(t *testing.T) {
