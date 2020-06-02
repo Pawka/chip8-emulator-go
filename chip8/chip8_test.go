@@ -551,6 +551,14 @@ func TestExec(t *testing.T) {
 				assert.Equal(t, uint16(0x202), ch.pc)
 			},
 		},
+		// FX29
+		"point_i_to_font_position": {
+			opcode: 0xF429,
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint16(0x202), ch.pc)
+				assert.Equal(t, 40, ch.i)
+			},
+		},
 		// FX33
 		"store_decimal_at_vx_to_i": {
 			opcode: 0xF433,
