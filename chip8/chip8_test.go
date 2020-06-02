@@ -551,6 +551,20 @@ func TestExec(t *testing.T) {
 				assert.Equal(t, uint16(0x202), ch.pc)
 			},
 		},
+		// FX33
+		"store_decimal_at_vx_to_i": {
+			opcode: 0xF433,
+			setup: func(ch *chip8) {
+				ch.i = 2
+				ch.v[4] = 123
+			},
+			assert: func(t *testing.T, ch *chip8) {
+				assert.Equal(t, uint16(0x202), ch.pc)
+				assert.Equal(t, uint8(1), ch.ram.Memory[ch.i])
+				assert.Equal(t, uint8(2), ch.ram.Memory[ch.i+1])
+				assert.Equal(t, uint8(3), ch.ram.Memory[ch.i+2])
+			},
+		},
 		// FX55
 		"fill_memory_with_values_from_v0_to_vx": {
 			opcode: 0xF455,

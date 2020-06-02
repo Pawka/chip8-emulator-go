@@ -302,7 +302,11 @@ func (c *chip8) exec(pc uint16) {
 				c.v[0xF] = 1
 			}
 		// case 0x29:
-		// case 0x33:
+		case 0x33:
+			val := c.v[vx]
+			c.ram.Memory[c.i] = val / 100
+			c.ram.Memory[c.i+1] = val % 100 / 10
+			c.ram.Memory[c.i+2] = val % 10
 		case 0x55:
 			for i := 0; i <= int(vx); i++ {
 				c.ram.Memory[c.i+i] = c.v[i]
