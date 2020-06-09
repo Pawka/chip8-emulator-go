@@ -385,6 +385,7 @@ func (c *chip8) exec(pc uint16) {
 		// Collect keys pressed during the cycle.
 		pressed := make(map[byte]bool)
 		for key := c.display.PollKey(); key != nil; key = c.display.PollKey() {
+			c.display.Debug("Key: " + string(*key))
 			pressed[c._keysMap[*key]] = true
 		}
 

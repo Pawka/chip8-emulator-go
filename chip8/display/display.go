@@ -8,8 +8,9 @@ import (
 )
 
 const (
-	width  = 64
-	height = 32
+	width          = 64
+	height         = 32
+	debuggerHeight = 10
 )
 
 // Display defines interface of CHIP8 display.
@@ -27,9 +28,13 @@ type Display interface {
 
 	// PollKey returns a pressed key.
 	PollKey() *rune
+
+	// Debug prints information at the top left corner of sceen.
+	Debug(line string)
 }
 
 type display struct {
+	debugLines       []string
 	s                tcell.Screen
 	keych            chan rune
 	quit             chan struct{}
@@ -57,11 +62,12 @@ func New() (Display, error) {
 	fg := tcell.StyleDefault.Background(tcell.ColorBlack)
 	bg := tcell.StyleDefault.Background(tcell.ColorWhite)
 	d := &display{
-		s:       s,
-		sprites: make(chan sprite),
-		keych:   make(chan rune, 10),
-		bgStyle: bg,
-		fgStyle: fg,
+		debugLines: make([]string, debuggerHeight),
+		s:          s,
+		sprites:    make(chan sprite),
+		keych:      make(chan rune, 10),
+		bgStyle:    bg,
+		fgStyle:    fg,
 	}
 	return d, nil
 }
@@ -204,5 +210,14 @@ func (d *display) PollKey() *rune {
 		return &r
 	default:
 		return nil
+	}
+}
+
+func (d *display) Debug(line string) {
+	copy(d.debugLines[1:], d.debugLines[:debuggerHeight-1])
+	d.debugLines[0] = line
+
+	for i, l := range d.debugLines {
+		d.s.SetContent(0, i, ' ', []rune(l), d.fgStyle)
 	}
 }
