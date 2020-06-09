@@ -79,16 +79,22 @@ func (d *display) Show() {
 			switch ev := ev.(type) {
 			case *tcell.EventKey:
 				if ev.Key() == tcell.KeyCtrlC ||
-					ev.Key() == tcell.KeyEscape ||
-					ev.Rune() == 'q' {
+					ev.Key() == tcell.KeyEscape {
 					close(d.quit)
 					return
 				}
-				if ev.Rune() >= '0' && ev.Rune() <= '9' ||
-					ev.Rune() >= 'a' && ev.Rune() <= 'f' {
-					go func() {
-						d.keych <- ev.Rune()
-					}()
+				keys := []rune{
+					'1', '2', '3', '4',
+					'q', 'w', 'e', 'r',
+					'a', 's', 'd', 'f',
+					'z', 'x', 'c', 'v',
+				}
+				for _, k := range keys {
+					if ev.Rune() == k {
+						go func() {
+							d.keych <- ev.Rune()
+						}()
+					}
 				}
 			case *tcell.EventResize:
 				d.s.Sync()
