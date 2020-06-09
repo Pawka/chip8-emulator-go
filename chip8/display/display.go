@@ -62,7 +62,7 @@ func New() (Display, error) {
 	fg := tcell.StyleDefault.Background(tcell.ColorBlack)
 	bg := tcell.StyleDefault.Background(tcell.ColorWhite)
 	d := &display{
-		debugLines: make([]string, debuggerHeight),
+		debugLines: make([]string, 0, debuggerHeight),
 		s:          s,
 		sprites:    make(chan sprite),
 		keych:      make(chan rune, 10),
@@ -214,8 +214,12 @@ func (d *display) PollKey() *rune {
 }
 
 func (d *display) Debug(line string) {
-	copy(d.debugLines[1:], d.debugLines[:debuggerHeight-1])
-	d.debugLines[0] = line
+	if len(d.debugLines) < debuggerHeight {
+		d.debugLines = append(d.debugLines, line)
+	} else {
+		copy(d.debugLines, d.debugLines[1:])
+		d.debugLines[debuggerHeight-1] = line
+	}
 
 	for i, l := range d.debugLines {
 		d.s.SetContent(0, i, ' ', []rune(l), d.fgStyle)
