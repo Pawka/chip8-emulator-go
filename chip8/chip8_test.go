@@ -37,6 +37,10 @@ func (d *displayMock) Clear() {
 	d.clear = true
 }
 
+func (d *displayMock) Debug(line string) {
+
+}
+
 func (d *displayMock) PollKey() *rune {
 	if len(d.keys) == 0 {
 		return nil
@@ -423,7 +427,7 @@ func TestExec(t *testing.T) {
 		"skip_instruction_when_key_is_pressed": {
 			opcode: 0xEA9E,
 			setup: func(ch *chip8) {
-				key := '9'
+				key := 'd' // 'd' is mapped to '9' on keyboard
 				ch.display = &displayMock{
 					keys: []*rune{&key},
 				}
@@ -436,7 +440,7 @@ func TestExec(t *testing.T) {
 		"do_not_skip_instruction_when_other_key_is_pressed": {
 			opcode: 0xEA9E,
 			setup: func(ch *chip8) {
-				key1 := '9'
+				key1 := 'd' // 'd' is mapped to '9' on keyboard
 				key2 := '1'
 				ch.display = &displayMock{
 					keys: []*rune{&key1, &key2},
@@ -464,7 +468,7 @@ func TestExec(t *testing.T) {
 		"do_not_skip_instruction_when_key_is_pressed": {
 			opcode: 0xEAA1,
 			setup: func(ch *chip8) {
-				key1 := '9'
+				key1 := 'd' // 'd' is mapped to '9' on keyboard
 				key2 := '1'
 				ch.display = &displayMock{
 					keys: []*rune{&key1, &key2},
@@ -491,7 +495,7 @@ func TestExec(t *testing.T) {
 		"set_pressed_key_to_vx": {
 			opcode: 0xF40A,
 			setup: func(ch *chip8) {
-				key1 := '9'
+				key1 := 'd' // 'd' is mapped to '9' on keyboard
 				ch.display = &displayMock{
 					keys: []*rune{&key1},
 				}
