@@ -68,22 +68,22 @@ func NewChip8(ctx Ctx) Chip8 {
 		pc:         0x200,
 
 		_keysMap: map[rune]byte{
-			'0': 0,
-			'1': 1,
-			'2': 2,
-			'3': 3,
-			'4': 4,
-			'5': 5,
-			'6': 6,
-			'7': 7,
-			'8': 8,
-			'9': 9,
-			'a': 0xA,
-			'b': 0xB,
-			'c': 0xC,
-			'd': 0xD,
-			'e': 0xE,
-			'f': 0xF,
+			'1': 0x1,
+			'2': 0x2,
+			'3': 0x3,
+			'4': 0xC,
+			'q': 0x4,
+			'w': 0x5,
+			'e': 0x6,
+			'r': 0xD,
+			'a': 0x7,
+			's': 0x8,
+			'd': 0x9,
+			'f': 0xE,
+			'z': 0xA,
+			'x': 0x0,
+			'c': 0xB,
+			'v': 0xF,
 		},
 	}
 
@@ -385,8 +385,10 @@ func (c *chip8) exec(pc uint16) {
 		// Collect keys pressed during the cycle.
 		pressed := make(map[byte]bool)
 		for key := c.display.PollKey(); key != nil; key = c.display.PollKey() {
-			c.display.Debug("Key: " + string(*key))
 			pressed[c._keysMap[*key]] = true
+			if _, ok := c._keysMap[*key]; ok {
+				c.display.Debug(fmt.Sprintf("Key: %#v", c._keysMap[*key]))
+			}
 		}
 
 		vx := code & 0x0F00 >> 8
