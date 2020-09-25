@@ -218,7 +218,7 @@ func (c *chip8) Run(ctx Ctx) {
 
 	if ctx.disassemble {
 		for pc := 0x200; pc < memorySize; pc = pc + 2 {
-			c.disassemble(pc)
+			fmt.Println(c.disassemble(pc))
 		}
 		return
 	}
@@ -250,6 +250,7 @@ loop:
 }
 
 func (c *chip8) exec(pc uint16) {
+	c.display.Debug(c.disassemble(int(pc)))
 	code := binary.BigEndian.Uint16(c.ram.Memory[pc : pc+2])
 	first := code & 0xF000 >> 12
 
@@ -450,7 +451,7 @@ func (c *chip8) exec(pc uint16) {
 	}
 }
 
-func (c *chip8) disassemble(pc int) {
+func (c *chip8) disassemble(pc int) string {
 	code := binary.BigEndian.Uint16(c.ram.Memory[pc : pc+2])
 	first := code & 0xF000 >> 12
 
@@ -562,6 +563,8 @@ func (c *chip8) disassemble(pc int) {
 	}
 
 	if code != 0x0 {
-		fmt.Printf("%04x\t%04X\t%s\n", pc, code, expl)
+		return fmt.Sprintf("%04x\t%04X\t%s\n", pc, code, expl)
 	}
+
+	return ""
 }
